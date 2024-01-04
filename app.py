@@ -9,11 +9,13 @@ from queue import Queue
 
 from datetime import datetime
 
+DEVICE_DISPLAY_MAX = 4
 
 db = firestore_v1.Client()
 collection_ref = db.collection(u'person-sensor-blues-data')
 
 q = Queue()
+
 
 def on_snapshot(collection_snapshot, changes, read_time):
   docs_by_device = {}
@@ -30,10 +32,11 @@ def on_snapshot(collection_snapshot, changes, read_time):
     docs_by_device[device].sort(key=lambda x: x["time"], reverse = True)
     most_recent_time = docs_by_device[device][0]["time"]
     cutoff_time = most_recent_time - (15 * 60)
-    def recent_enough(input):
-      return (input["time"] > cutoff_time)
-    docs_by_device[device] = filter(recent_enough, docs_by_device[device])
-
+    most_recent = []
+    for doc in docs_by_device[device]:
+      if doc["time"] < cutoff_time:
+        most_recent.append(doc)
+    docs_by_device[device] = most_recent
 
   frames_by_device = {}  
   for device in docs_by_device.keys():
@@ -53,11 +56,15 @@ def on_snapshot(collection_snapshot, changes, read_time):
 collection_watch = collection_ref.on_snapshot(on_snapshot)
 
 # below will run in main thread
-snap = st.empty()  # placeholder
+snaps = []
+for i in range(DEVICE_DISPLAY_MAX):
+  snaps.append(st.empty())
 
 while True:
   # q.get() is a blocking function. thus recommend to add timeout
   frames_by_device = q.get()  # Read from the Queue
-  for device in frames_by_device.keys():
+  for index, device in enumerate(frames_by_device.keys()):
+    if index >= DEVICE_DISPLAY_MAX:
+      break
     frame = frames_by_device[device]
-    snap.line_chart(data=frame, x="time", y="num_faces")
+    snaps[index].line_chart(data=frame, x="time", y="num_faces")
