@@ -98,7 +98,9 @@ while True:
               y2=0
           )
         ).encode(
-            alt.X('time:T'),
+            alt.X('time:T', axis=alt.Axis(
+                title="Time"
+            )),
             alt.Y('num_faces:Q', axis=alt.Axis(
                 title="People",
             )).scale(domain=(0,5))
