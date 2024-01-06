@@ -34,7 +34,7 @@ def on_snapshot(collection_snapshot, changes, read_time):
         doc_dict = doc.to_dict()
         if "device" not in doc_dict or "time" not in doc_dict or "num_faces" not in doc_dict:
             continue
-        device =    doc_dict["device"]
+        device = doc_dict["device"]
         if device not in docs_by_device:
             docs_by_device[device] = []
         docs_by_device[device].append(doc_dict)
