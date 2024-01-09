@@ -11,12 +11,14 @@ from datetime import datetime
 
 import altair as alt
 
+import random
+
 DEVICE_DISPLAY_MAX = 4
 MINUTES_TO_DISPLAY = 45
 COLUMN_COUNT = 2
 
 FRIENDLY_DEVICE_NAMES = {
-  "dev:860322068099875": "Coffee Bar",
+  "dev:860322068099875": "Pete's Board",
   "dev:860322067840667": "Fridge",
   "dev:860322068093811": "Useful Demo Station",
   "dev:860322068094264": "Video Wall",
@@ -55,11 +57,17 @@ def on_snapshot(collection_snapshot, changes, read_time):
         friendly_times = []
         for doc_dict in doc_dicts:
             json_time = doc_dict["time"] * 1000
+            num_faces = doc_dict["num_faces"]
+            if "num_facing_faces" in doc_dict:
+                num_facing_faces = doc_dict["num_facing_faces"]
+            else:
+                num_facing_faces = 0
             friendly_times.append({
                 "time": json_time,
-                "num_faces": doc_dict["num_faces"]
+                "People": num_faces,
+                "Attention": num_facing_faces
             })
-        frames_by_device[device] = pd.DataFrame(friendly_times, columns=["time", "num_faces"])
+        frames_by_device[device] = pd.DataFrame(friendly_times, columns=["time", "People", "Attention"])
 
     q.put(frames_by_device)    # Put data into the Queue
 
@@ -84,7 +92,7 @@ while True:
             friendly_device_name = FRIENDLY_DEVICE_NAMES[device]
         else:
             friendly_device_name = device
-        latest_value = frame["num_faces"].values[0]
+        latest_value = int(round(frame["People"].values[0]))
         title = f"{friendly_device_name} - {latest_value} People"
         chart = alt.Chart(frame, title=title).mark_area(
           line={'color':'darkgreen'},
@@ -101,8 +109,12 @@ while True:
             alt.X('time:T', axis=alt.Axis(
                 title="Time"
             )),
-            alt.Y('num_faces:Q', axis=alt.Axis(
-                title="People",
-            )).scale(domain=(0,5))
-        )
+            alt.Y(alt.repeat('layer'),
+                type='quantitative',
+                axis=alt.Axis(
+                    title="People",
+                )
+            ).scale(domain=(0,5)),
+            color=alt.ColorDatum(alt.repeat('layer'))
+        ).repeat(layer=["People", "Attention"])
         snaps[index].altair_chart(chart, use_container_width=True)
