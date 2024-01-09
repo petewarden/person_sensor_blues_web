@@ -18,11 +18,13 @@ MINUTES_TO_DISPLAY = 45
 COLUMN_COUNT = 2
 
 FRIENDLY_DEVICE_NAMES = {
-  "dev:860322068099875": "Pete's Board",
-  "dev:860322067840667": "Fridge",
-  "dev:860322068093811": "Useful Demo Station",
-  "dev:860322068094264": "Video Wall",
+  "dev:860322068099875": "Wall Screen",
+  "dev:860322067840667": "True Fridge",
+  "dev:860322068093811": "Blues Billboard",
+  "dev:860322068094264": "Booth",
 }
+
+TITLE = "Blue/Useful Sensors Retail Analytics"
 
 db = firestore_v1.Client()
 collection_ref = db.collection(u'person-sensor-blues-data')
