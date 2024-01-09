@@ -76,7 +76,7 @@ def on_snapshot(collection_snapshot, changes, read_time):
 collection_watch = collection_ref.on_snapshot(on_snapshot)
 
 st.set_page_config(layout="wide")
-st.title("Blues/Useful Sensors Person Counting Demo")
+st.title(TITLE)
 columns = st.columns(COLUMN_COUNT)
 
 snaps = []
